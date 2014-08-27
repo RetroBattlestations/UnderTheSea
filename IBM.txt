@@ -1,0 +1,101 @@
+ 100 REM BASIC Week 3: Under the Sea
+ 110 REM http://reddit.com/r/RetroBattlestations
+ 120 REM written by FozzTexx
+ 130 REM IBM PC version by FozzTexx
+
+ 200 REM Clear screen and setup variables
+ 210 CLS
+ 220 COLS = 80:ROWS = 24:REM Columns and Rows of screen
+ 230 GOSUB 2010:Turtle$ = SP$:TurtleWidth = SC:TurtleHeight = SR
+ 240 TurtleErase$ = "":AirMax = 10
+ 250 FOR I = 1 TO TurtleWidth:TurtleErase$ = TurtleErase$ + " ":NEXT I
+ 260 TurtleY = 18:Surface = 4:GOSUB 4090
+
+ 300 REM Play game
+ 310 NumBubbles = INT(RND * 3) + 1
+ 320 FOR BB = 1 to NumBubbles
+ 330 BubbleX(BB) = INT(RND * COLS) + 1:BubbleY(BB) = ROWS - INT(RND * 3)
+ 340 Bubble$(BB) = CHR$(79 + INT(RND * 2) * 32):NEXT BB
+ 350 LastY = TurtleY
+ 360 FOR TurtleX = 1 TO COLS
+ 370 IF LastY <> TurtleY THEN GOSUB 3510
+ 380 FOR BB = 1 to NumBubbles
+ 390 IF INT(BubbleY(BB)) <= SURFACE THEN GOTO 520
+ 400 NewY = BubbleY(BB) - (ROWS / COLS)
+ 410 X = BubbleX(BB):Y = INT(BubbleY(BB))
+ 420 IF TurtleY = Surface + 1 AND Air < AirMax THEN GOSUB 4090:GOTO 490
+ 430 IF BubbleX(BB) < TurtleX + TurtleWidth - 2 THEN GOTO 490
+ 440 IF BubbleX(BB) > TurtleX + TurtleWidth + 1 THEN GOTO 490
+ 450 IF BubbleY(BB) < TurtleY - 1 THEN GOTO 490
+ 460 IF BubbleY(BB) > TurtleY + 1 THEN GOTO 490
+ 470 Air = Air + 2:IF Bubble$(BB) = "O" THEN AIR = AIR + 1
+ 480 GOSUB 4010:NewY = ROWS + COLS
+ 490 IF NewY = Y THEN GOTO 510
+ 500 SP$ = " ":GOSUB 1510:SP$ = Bubble$(BB):Y = INT(NewY)
+ 510 IF Y > Surface THEN GOSUB 1510
+ 520 BubbleY(BB) = NewY
+ 530 NEXT BB
+ 540 SP$ = Turtle$:X = TurtleX:Y = TurtleY:GOSUB 1510
+ 550 LastY = TurtleY:GOSUB 2510
+ 560 IF KE$ = "A" OR KE$ = "a" THEN D = -1:GOSUB 3010
+ 570 IF KE$ = "Z" OR KE$ = "z" THEN D = 1: GOSUB 3010
+ 580 IF KE$ = "Q" OR KE$ = "q" THEN END
+ 590 IF TurtleY = Surface + 1 THEN GOTO 610
+ 600 IF TurtleX = (COLS / 4) OR TurtleX = (COLS / 4) * 3 THEN GOSUB 4010
+ 610 NEXT TurtleX
+ 620 GOTO 310
+ 
+1000 REM Position cursor at X,Y
+1010 LOCATE Y,X
+1020 RETURN
+
+1500 REM Draw sprite in SP$ at X,Y
+1510 SE = 1:SB = 1
+1520 SE = INSTR(SB, SP$, CHR$(13))
+1530 IF SE = 0 THEN SE = LEN(SP$) + 1
+1540 IF Y > ROWS THEN RETURN
+1550 GOSUB 1010
+1560 SL = SE - SB:IF SL + X - 1 > COLS THEN SL = COLS - X + 1
+1570 PRINT MID$(SP$, SB, SL);
+1580 IF SE >= LEN(SP$) THEN RETURN
+1590 IF ASC(MID$(SP$, SE)) = 13 THEN SE = SE +  1
+1600 SB = SE:Y = Y + 1:GOTO 1520
+
+2000 REM Load a sprite from DATA into SP$
+2010 SP$ = "":SE$ = "":SR = 0:SC = 0
+2020 READ T$,S$:IF LEN(SP$) > 0 THEN SP$ = SP$ + CHR$(13)
+2030 SP$ = SP$ + S$:SR = SR + 1:IF LEN(S$) > SC THEN SC = LEN(S$)
+2040 BL$ = "":FOR I = 1 TO LEN(S$):BL$ = BL$ + " ":NEXT I
+2050 IF LEN(SE$) > 0 THEN SE$ = SE$ + CHR$(13)
+2060 SE$ = SE$ + BL$
+2070 IF T$ <> "SE" THEN GOTO 2020
+2080 RETURN
+
+2500 REM Read the keyboard
+2510 KE$ = INKEY$
+2520 RETURN
+
+3000 REM Player wants to move turtle up or down
+3010 TurtleY = TurtleY + D
+3020 IF TurtleY <= Surface THEN TurtleY = Surface + 1
+3030 IF TurtleY > ROWS - TurtleHeight + 1 THEN TurtleY = ROWS - TurtleHeight + 1
+3040 RETURN
+
+3500 REM Turtle moved up or down, erase from previous line
+3510 Y = LastY:IF LastY > TurtleY THEN Y = Y + TurtleHeight - 1
+3520 X = TurtleX:SP$ = TurtleErase$:GOSUB 1510
+3530 RETURN
+
+4000 REM Show remaining air
+4010 Air = Air - 1:IF Air < 0 THEN Air = 0:RETURN
+4020 IF Air > AirMax THEN Air = AirMax
+4030 OX = X:OY = Y:X = COLS - 7 - AirMax:Y = 2:GOSUB 1010:X = OX:Y = OY
+4040 PRINT "Air: |";
+4050 FOR I = 1 TO Air:PRINT "#";:NEXT I
+4060 IF Air < AirMax THEN FOR I = Air + 1 TO AirMax:PRINT " ";:NEXT I
+4070 PRINT "|";
+4080 RETURN
+4090 Air = AirMax:GOTO 4030
+
+5000 DATA SP," _-%#%#}o"
+5010 DATA SE,"       )"
