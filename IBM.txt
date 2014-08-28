@@ -15,7 +15,7 @@
  290 TurtleY = 18:Surface = 4:GOSUB 4100:Score = -10:GOSUB 4510
 
  300 REM Play game
- 310 LOCATE Surface,1
+ 310 X = 1:Y = Surface:GOSUB 1010
  320 FOR I = 1 TO COLS:PRINT MID$(Sea$, INT(RND * 3) + 1, 1);:NEXT I
  330 GOSUB 5140:GOSUB 6660:GOSUB 6140
  340 LastY = TurtleY
@@ -33,12 +33,16 @@
  460 NEXT TurtleX
  470 GOTO 310
  
+1000 REM Position cursor at X,Y
+1010 LOCATE Y,X
+1020 RETURN
+
 1500 REM Draw sprite in SP$ at X,Y
 1510 SE = 1:SB = 1
 1520 IF X < 1 OR X > COLS OR Y < 1 OR Y > ROWS THEN RETURN
 1530 SE = INSTR(SB, SP$, CHR$(13))
 1540 IF SE = 0 THEN SE = LEN(SP$) + 1
-1550 LOCATE Y,X
+1550 GOSUB 1010
 1560 SL = SE - SB:IF SL + X - 1 > COLS THEN SL = COLS - X + 1
 1570 PRINT MID$(SP$, SB, SL);
 1580 IF SE >= LEN(SP$) THEN RETURN
@@ -73,7 +77,7 @@
 4000 REM Show remaining air
 4010 Air = Air - 1:IF Air < 0 THEN Air = 0
 4020 IF Air > AirMax THEN Air = AirMax
-4030 LOCATE 2,COLS - 7 - AirMax
+4030 X = COLS - 7 - AirMax:Y = 2:GOSUB 1010
 4040 PRINT "Air: |";
 4050 FOR I = 1 TO Air:PRINT "#";:NEXT I
 4060 IF Air < AirMax THEN FOR I = Air + 1 TO AirMax:PRINT " ";:NEXT I
@@ -87,12 +91,12 @@
 4140 NEXT I
 4150 X = (COLS - GOWidth) / 2:Y = (ROWS - GOHeight) / 2
 4160 SP$ = GameOver$:GOSUB 1510
-4170 LOCATE ROWS - 2,1
+4170 X = 1:Y = ROWS - 2:GOSUB 1010
 4180 END
 
 4500 REM Display score
 4510 Score = Score + 10
-4520 LOCATE 2,2:PRINT "Score: ";Score;
+4520 X = 2:Y = 2:GOSUB 1010:PRINT "Score: ";Score;
 4540 RETURN
 
 5000 REM Take care of bubbles
