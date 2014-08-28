@@ -87,7 +87,7 @@
 4140 NEXT I
 4150 X = (COLS - GOWidth) / 2:Y = (ROWS - GOHeight) / 2
 4160 SP$ = GameOver$:GOSUB 1510
-4170 LOCATE 2 - ROWS,1
+4170 LOCATE ROWS - 2,1
 4180 END
 
 4500 REM Display score
