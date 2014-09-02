@@ -1,0 +1,163 @@
+  100 rem "basic week 3: under the sea
+  110 rem "http://reddit.com/r/retrobattlestations
+  120 rem "written by fozztexx
+  130 rem "ibm pc version by fozztexx
+  140 rem "commodore 64 version by rolandjuno
+  200 rem "clear screen and setup variables
+  210 printchr$(147)chr$(142)
+  220 cl = 40:rw = 24:rem "columns and rows of screen
+  230 gosub 2010:tt$= sp$:tw = sc:th = sr
+  240 te$ = se$:gosub 2010:td$ = sp$
+  250 for ee = 1 to 3:gosub 2010:nm$(ee) = sp$
+  260 ee$(ee) = se$:ew(ee) = sc:next ee
+  270 gosub 2010:gv$ = sp$:gw = sc:gh = sr
+  280 am = 10:se$ = "{CBM-@}{CBM-O}{CBM-I}"
+  290 ty = 18:sf = 4:gosub 4100:sc = -10:gosub 4510
+  300 rem "play game
+  310 x = 1:y = sf:gosub 1010
+  320 for i = 1 to cl:print mid$(se$,int(rnd(1)*3)+1,1);:next i
+  330 gosub 5140:gosub 6660:gosub 6140
+  340 ly = ty
+  350 for tx = 1 to cl
+  360 if ly <> ty then gosub 3510
+  370 gosub 5010:gosub 6510:gosub 6010
+  380 sp$ =tt$:x = tx:y = ty:gosub 1510
+  390 ly = ty:gosub 2510
+  400 if ke$ = "a" then d = -1:gosub 3010
+  410 if ke$ = "z" then d = 1: gosub 3010
+  420 if ke$ = "q" then end
+  430 if ty = sf + 1 then goto 450
+  440 if tx = (cl / 4) or tx = (cl / 4) * 3 then gosub 4010
+  450 if ty = sf + 1 and air < am then gosub 4100
+  460 next tx
+  470 goto 310
+ 1000 rem "position cursor at x,y
+ 1010 poke 781,y:poke782,x-1:poke783,0:sys65520
+ 1020 return
+ 1500 rem "draw sprite in sp$ at x,y
+ 1510 se = 1:sb = 1
+ 1520 if x < 1 or x > cl or y < 1 or y > rw then return
+ 1530 ifmid$(sp$,se,1)=chr$(13)then1540
+ 1531 if se>len(sp$)thense=.:goto1540
+ 1532 se=se+1:goto1530
+ 1540 if se = . then se = len(sp$) + 1
+ 1550 gosub 1010
+ 1560 sl = se - sb:if sl + x - 1 > cl then sl = cl - x + 1
+ 1565 if sl <0 then sl=0
+ 1570 print mid$(sp$, sb, sl);
+ 1580 if se >= len(sp$) then return
+ 1590 if mid$(sp$, se,1)=chr$(13) then se = se +  1
+ 1600 sb = se:y = y + 1:goto 1520
+ 2000 rem "load a sprite from data into sp$
+ 2010 sp$ = "":se$ = "":sr = .:sc = .
+ 2020 read t$,s$:if len(sp$) > 0 then sp$ = sp$ + chr$(13)
+ 2030 sp$ = sp$ + s$:sr = sr + 1:if len(s$) > sc then sc = len(s$)
+ 2040 bl$ = "":for i = 1 to len(s$):bl$ = bl$ + " ":next i
+ 2050 if len(se$) > 0 then se$ = se$ + chr$(13)
+ 2060 se$ = se$ + bl$
+ 2070 if t$ <> "se" then goto 2020
+ 2080 return
+ 2500 rem "read the keyboard
+ 2510 get ke$
+ 2520 return
+ 3000 rem "player wants to move turtle up or down
+ 3010 ty = ty + d
+ 3020 if ty <= sf then ty = sf + 1
+ 3030 if ty > rw - th + 1 then ty = rw - th + 1
+ 3040 return
+ 3500 rem "turtle moved up or down, erase from previous line
+ 3510 y = ly:if ly > ty then y = y + th - 1
+ 3520 x = tx:sp$ = te$:gosub 1510
+ 3530 return
+ 4000 rem "show remaining air
+ 4010 air = air - 1:if air < 0 then air = .
+ 4020 if air > am then air = am
+ 4030 x = cl - 7 - am:y = 2:gosub 1010
+ 4040 print "air: {CBM-M}";
+ 4050 for i = 1 to air:print "{CBM-+}";:next i
+ 4060 if air < am then for i = air + 1 to am:print " ";:next i
+ 4070 print "{CBM-H}";
+ 4080 if air = . then goto 4110
+ 4090 return
+ 4100 air = am:goto 4030
+ 4110 for i = ty to sf + 1 step -1
+ 4120 x = tx:y = i:sp$ = td$:gosub 1510
+ 4130 y = y + 1:sp$ = te$:gosub 1510
+ 4140 next i
+ 4150 x = (cl - gw) / 2:y = (rw - gh) / 2
+ 4160 sp$ = gv$:gosub 1510
+ 4170 x = 1:y = rw - 2:gosub 1010
+ 4180 end
+ 4500 rem "display score
+ 4510 sc = sc + 10
+ 4520 x = 2:y = 2:gosub 1010:print "score: ";sc;
+ 4540 return
+ 5000 rem "take care of bubbles
+ 5010 for bb = 1 to nb
+ 5020 if int(by(bb)) <= sf then goto 5120
+ 5030 ny = by(bb) - (rw / cl)
+ 5040 x = bx(bb):y = int(by(bb))
+ 5050 gosub 5510:if hit = . then goto 5080
+ 5060 air = air + 2:if bu$(bb) = "o" then air = air + 1
+ 5070 gosub 4010:ny = rw + cl
+ 5080 if int(ny) = y then goto 5110
+ 5090 sp$ = " ":gosub 1510:sp$ = bu$(bb):y = int(ny)
+ 5100 if y > sf then gosub 1510
+ 5110 by(bb) = ny
+ 5120 next bb
+ 5130 return
+ 5140 nb = int(rnd(1)*3)+1:for bb = 1 to nb
+ 5150 bx(bb) = int(rnd(1)*cl) + 1:by(bb) = rw - int(rnd(1)*3)
+ 5160 bu$(bb) = chr$(79 + int(rnd(1)*2) *136)
+ 5170 next bb:return
+ 5500 rem "hit detection
+ 5510 hit = .
+ 5520 if x < tx + tw - 2 then return
+ 5530 if x > tx + tw + 1 then return
+ 5540 if y < ty - 1 then return
+ 5550 if y > ty + 1 then return
+ 5560 hit = 1:return
+ 6000 rem "take care of enemies
+ 6010 for ee = 1 to ne
+ 6020 if int(ey(ee)) <= sf then goto 6120
+ 6030 nx = ex(ee) + xv(ee):ny = ey(ee) + yv(ee)
+ 6040 x = int(ex(ee)):y = int(ey(ee))
+ 6050 if eh(ee) = 1 then goto 6070
+ 6060 gosub 5510:if hit = 1 then gosub 4010:eh(ee) = 1
+ 6070 if int(nx) = x and int(ny) = y then goto 6110
+ 6080 sp$ = ee$(ec(ee)):gosub 1510
+ 6090 sp$ = nm$(ec(ee)):x = int(nx):y = int(ny)
+ 6100 if y > sf then gosub 1510
+ 6110 ex(ee) = nx:ey(ee) = ny
+ 6120 next ee
+ 6130 return
+ 6140 for ee = 1 to ne:sp$ = ee$(ec(ee))
+ 6150 x = int(ex(ee)):y = int(ey(ee)):gosub 1510:next ee
+ 6160 ne = int(rnd(1)*3) + 1:for ee = 1 to ne
+ 6170 ex(ee)=int(rnd(1)*cl)+1:ey(ee)=rw-int(rnd(1)*(rw - sf))
+ 6180 xv(ee) = rnd(1):yv(ee) = rnd(1)*((rw - sf) / cl)
+ 6190 ec(ee) = int(rnd(1)*3) + 1:eh(ee) = .
+ 6200 if ex(ee) > cl / 2 then xv(ee) = - xv(ee)
+ 6210 if ey(ee) > rw / 2 then yv(ee) = - yv(ee)
+ 6220 next ee:return
+ 6500 rem "take care of food
+ 6510 for ff = 1 to nb
+ 6520 x = fx(ff):y = int(fy(ff)):gosub 5510
+ 6530 if hit = 1 then gosub 4510:sp$ = " ":gosub 1510:fy(ff) = rw + cl
+ 6640 next ff
+ 6650 return
+ 6660 sp$=" ":for ff=1 to nb:x = fx(ff):y = fy(ff):gosub 1510:next ff
+ 6670 nb = int(rnd(1)*3) + 1:for ff = 1 to nb
+ 6680 fx(ff)=int(rnd(1)*cl) + 1:fy(ff)=rw - int(rnd(1)*(rw - sf))
+ 6690 f$(ff) = chr$(88 + int(rnd(1)*2))
+ 6700 x = fx(ff):y = fy(ff):sp$ = f$(ff):gosub 1510
+ 6710 next ff:return
+ 9000 data sp," -%#%#?o"
+ 9010 data se,"       )"
+ 9020 data se,"  -oooo?x"
+ 9030 data se,"~;;~"
+ 9040 data se,"<><"
+ 9050 data se,"$"
+ 9070 data sp,"N{CBM-Y}M N{CBM-Y}M {CBM-N}M  N{CBM-H} {CBM-N}{CBM-Y}{CBM-Y}     N{CBM-Y}M {CBM-H} {CBM-N} O{CBM-Y}{CBM-Y} Y M"
+ 9080 data sp,"{CBM-H} {CBM-P} @@@ {CBM-N} MN {CBM-H} {CBM-N}@@  @  {CBM-H} {CBM-N} M / {CBM-H}@@ Y{CBM-P}/"
+ 9090 data se,"M{CBM-P}N {CBM-H} {CBM-N} {CBM-N}    {CBM-H} {CBM-N}{CBM-P}{CBM-P}     M{CBM-P}N  v  L{CBM-P}{CBM-P} Y M"
