@@ -5,6 +5,15 @@ flavors. The "graphics" are character based and have some simple
 sprites. It should be portable to any BASIC that has the ability to
 position the cursor at a specific location.
 
+This time around instead of just being a picture or an animation, it's
+a game!  In this game you take control of a sea turtle in a sort of
+endless runner type game. The turtle constantly swims from left to
+right and the A & Z keys move the turtle up & down. You need to eat
+food (x/y characters in most versions) for points. Running into
+enemies will cost you air. You can refill your air by catching air
+bubbles, or you can surface to refill completely. When you run out of
+air it's game over and the turtle goes belly up.
+
 === Typing Tips ===
 When typing the program in you can leave off any lines which contain
 REM, they are not needed for the program to run. You can also leave
