@@ -5,7 +5,7 @@
 
  200 REM Clear screen and setup variables
 rem 210 ? CHR$(4)"PR #3" : HOME 
-210 home
+ 210 home
  220 COLS = 40:ROWS = 24:REM Columns and Rows of screen
  230 GOSUB 2010:TU$ = SP$:TW = SC:TH = SR
  240 TE$ = SE$:GOSUB 2010:TD$ = SP$
@@ -41,12 +41,9 @@ rem 210 ? CHR$(4)"PR #3" : HOME
 1500 REM Draw sprite in SP$ at X,Y
 1510 SE = 1:SB = 1
 1520 IF X < 1 OR X > COLS OR Y < 1 OR Y > ROWS THEN RETURN
-
 1530 IF MID$(SP$,SE,1)=CHR$(13) THEN 1540
 1533 IF SE > LEN(SP$) THEN SE=0 : GOTO 1540
 1535 SE=SE+1: GOTO 1530
-
-
 1540 IF SE = 0 THEN SE = LEN(SP$) + 1
 1550 GOSUB 1010
 1560 SL = SE - SB:IF SL + X - 1 > COLS THEN SL = COLS - X + 1
