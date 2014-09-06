@@ -1,6 +1,6 @@
- 10 REM BASIC WEEK 3: UNDER THE SEA
- 20 REM HTTP://REDDIT.COM/R/RETROBATTLESTATIONS
- 30 REM WRITTEN BY FOZZTEXX
+ 10 REM BASIC Week 3: Under the Sea
+ 20 REM http://reddit.com/r/RetroBattlestations
+ 30 REM Written by FozzTexx
  40 REM BBC Basic version by lolbar
  
  100 MODE 4
