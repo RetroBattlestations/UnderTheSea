@@ -89,9 +89,9 @@
  4170 x = 1:y = rw - 2:gosub 1010
  4180 end
  4500 rem "display score
- 4510 sc = sc + 10
+ 4510 sc = sc + 10:ox = x:oy = y
  4520 x = 2:y = 2:gosub 1010:print "score: ";sc;
- 4540 return
+ 4540 x = ox:y = oy:return
  5000 rem "take care of bubbles
  5010 for bb = 1 to nb
  5020 if int(by(bb)) <= sf then goto 5120
