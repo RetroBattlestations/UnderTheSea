@@ -95,9 +95,9 @@
 4180 END
 
 4500 REM Display score
-4510 Score = Score + 10
+4510 Score = Score + 10:OX = X:OY = Y
 4520 X = 2:Y = 2:GOSUB 1010:PRINT "Score: ";Score;
-4540 RETURN
+4540 X = OX:Y = OY:RETURN
 
 5000 REM Take care of bubbles
 5010 FOR BB = 1 to NumBubbles

@@ -6,18 +6,19 @@ sprites. It should be portable to any BASIC that has the ability to
 position the cursor at a specific location.
 
 This time around instead of just being a picture or an animation, it's
-a game!  In this game you take control of a sea turtle in a sort of
-endless runner type game. The turtle constantly swims from left to
-right and the A & Z keys move the turtle up & down. You need to eat
-food (x/y characters in most versions) for points. Running into
-enemies will cost you air. You can refill your air by catching air
-bubbles, or you can surface to refill completely. When you run out of
-air it's game over and the turtle goes belly up.
+a game! You take control of a sea turtle in a sort of endless runner
+type game. The turtle constantly swims from left to right and the A &
+Z keys move the turtle up & down. You need to eat food (x/y characters
+in most versions) for points. Running into enemies will cost you
+air. You can refill your air by catching air bubbles, or you can
+surface to refill completely. When you run out of air it's game over
+and the turtle goes belly up.
 
 === Typing Tips ===
-When typing the program in you can leave off any lines which contain
-REM, they are not needed for the program to run. You can also leave
-out all whitespace.
+When typing the program in you can leave off any lines which begin
+with REM, they are not needed for the program to run. On many
+platforms you can leave out the whitespace between keywords and
+operators. IBM BASIC is not one of those however.
 
 Note: On the TRS-80 Color Computer and BBC Micro you need to include
       the spaces around any IF, AND, OR, or THEN statement.
@@ -57,3 +58,10 @@ TRS-80 model 100:
   type EDIT and the entire BASIC program will be loaded into the
   built-in word processor where you can make any changes you
   want. Press F8 to exit the editor and go back to BASIC.
+
+IBM Cassette BASIC, Disk BASIC, Advanced BASIC, GW-BASIC:
+  Type EDIT <line number> and it will print the line on the screen and
+  put your cursor at the beginning of the line. Arrow left/right and
+  you can use Insert & Delete to make corrections. Like Commodore
+  BASIC, you don't need to arrow to the end of the line before pushing
+  RETURN.
