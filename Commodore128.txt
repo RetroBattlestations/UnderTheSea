@@ -1,0 +1,218 @@
+100 rem "basic week 3: under the sea
+110 rem "http://reddit.com/r/retrobattlestations
+120 rem "written by fozztexx
+130 rem "commodore 128 version by xenomachina
+140 rem "based on commodore 64 version by rolandjuno
+150 rem "this version uses hardware sprites, and pretends that cells are 5px
+160 rem "sprites 1-3 = enemies, 4-6 = bubbles, 8 = turtle (player)
+170 rem "food, waves, seafloor and score/air are drawn to bitmap
+180 rem
+200 rem "clear screen and setup variables"
+210 graphic 5,1:print chr$(147)chr$(14):fast
+220 for i = 1 to 8:sprite i,0,2,0,0,0,0:movspr i,0#0:next:rem reset sprites
+230 color 0,7:color 4,7:cw=5:ch=5
+240 cl = 64:rw = 39
+250 gosub 7000
+260 gosub 2010:tt$=sp$:sprsav tt$,8:tw=sc:th=sr:sprite 8,1,6,,1,0
+270 gosub 2010:td$=sp$
+280 gosub 7200:gosub 7500
+290 gosub 4510:gosub 4100
+300 rem play game
+330 gosub 5140:gosub 6660:gosub 6140:color 4,1
+340 for tx = 1 to cl
+350 gosub 5010:gosub 6510:gosub 6010:slow
+360 sp=8:x = tx:y = ty:gosub 1500
+370 get ke$
+380 if ke$ = "a" then d = -1:gosub 3010
+390 if ke$ = "z" then d = 1: gosub 3010
+400 if ke$ = "q" then goto 8000
+410 if ty = sf + 1 then goto 450
+420 if tx = (cl / 4) or tx = (cl / 4) * 3 then gosub 4010
+450 if ty = sf + 1 and air < am then gosub 4100
+460 next tx
+470 fast:goto 330
+1500 rem move sprite in sp to x,y
+1510 movspr sp,x*cw+24-cw,y*ch+50-ch:return
+1600 rem render food at x,y
+1610 if y >= sf then box cc,x*cw-cw,y*ch-ch,x*cw-1,y*ch-1,,1
+1620 return
+2000 rem load a sprite from data into sp$
+2010 sp$ = "":se$ = "":sr = .:sc = .
+2020 read t$,sc,sr:print "Reading sprite " + t$
+2030 sr=int(sr/ch+.5):sc=int(sc/cw+.5)
+2040 for k = 1 to 67: read s: sp$ = sp$ + chr$(s): next k
+2050 return
+3000 rem player wants to move turtle up or down
+3010 ty = ty + d
+3020 if ty <= sf then ty = sf + 1
+3030 if ty > rw - th + 1 then ty = rw - th + 1
+3040 return
+4000 rem decrement air
+4010 air = air - 1:if air < 0 then air = .
+4020 if air > am then air = am
+4030 rem show remaining air
+4040 sp$ = "air: {CBM-M}"
+4050 for i = 1 to air:sp$ = sp$ + "{CBM-+}":next i
+4060 if air < am then for i = air + 1 to am:sp$ = sp$ + " ":next i
+4070 sp$ = sp$ + "{CBM-H}":color 1,4:char 1,40 - 7 - am,1,sp$,1
+4080 if air = . then goto 4110
+4090 return
+4100 air = am:goto 4030
+4110 rem dead turtle
+4120 sprite 8,,10:sprsav td$,8:for i = ty to sf + 1 step -1
+4130 x = tx:y = i:gosub 1500
+4140 y = y + 1
+4150 next i
+4160 rem display game over message
+4170 for i = 1 to 8
+4180 sprite i,0
+4190 sprsav gg$(i-1),i
+4200 x=i:y=0:if i>4 then x=i-4:y=1
+4210 movspr i,24+16+x*48,50+52+y*48
+4220 sprite i,1,2,0,1,1,0
+4230 next i
+4240 graphic 0,1
+4250 end
+4500 rem display score
+4510 sc = sc + 10
+4520 sp$ = "score:"+str$(sc)
+4530 color 1,4:char 1,1,1,sp$,1
+4540 return
+5000 rem take care of bubbles
+5010 for bb = 1 to nb
+5020 if int(by(bb)) <= sf then sprite 3+bb,0:goto 5120
+5030 ny = by(bb) - (rw / cl)
+5040 x = bx(bb):y = int(by(bb))
+5050 gosub 5510:if hit = . then goto 5080
+5060 air = air + 2:if bu$(bb) = "o" then air = air + 1
+5070 gosub 4010:ny = rw + cl
+5080 if int(ny) = y then goto 5110
+5090 sp=3+bb:y = int(ny)
+5100 if y > sf then x=x-1:y=y-1:gosub 1500
+5110 by(bb) = ny
+5120 next bb:return
+5130 rem set up bubbles
+5140 nb = int(rnd(1)*3)+1:for bb = 1 to 3:sprite 3+bb,0:next
+5150 for bb = 1 to nb:sprite 3+bb,1
+5160 bx(bb) = int(rnd(1)*cl) + 1:by(bb) = rw - int(rnd(1)*3)
+5170 bu$(bb) = chr$(79 + int(rnd(1)*2) *136)
+5180 next bb:return
+5500 rem hit detection
+5510 hit = .
+5520 if x < tx + tw - 2 then return
+5530 if x > tx + tw + 1 then return
+5540 if y < ty - 1 then return
+5550 if y > ty + 1 then return
+5560 hit = 1:return
+6000 rem take care of enemies
+6010 for ee = 1 to ne
+6020 if int(ey(ee)) <= sf then goto 6120
+6030 nx = ex(ee) + xv(ee):ny = ey(ee) + yv(ee)
+6040 x = int(ex(ee)):y = int(ey(ee))
+6050 if eh(ee) = 1 then goto 6070
+6060 gosub 5510:if hit = 1 then gosub 4010:eh(ee) = 1
+6070 if int(nx) = x and int(ny) = y then goto 6110
+6080 sp = ee:x = int(nx):y = int(ny)
+6090 if y > sf then gosub 1500
+6110 ex(ee) = nx:ey(ee) = ny
+6120 next ee
+6130 return
+6140 rem set up enemies
+6150 ne = int(rnd(1)*3)+1:for ee = 1 to 3:sprite ee,0:next
+6160 for ee = 1 to ne:sprite ee,1
+6170 ex(ee)=int(rnd(1)*cl)+1:ey(ee)=rw-int(rnd(1)*(rw - sf))
+6180 xv(ee) = rnd(1):yv(ee) = rnd(1)*((rw - sf) / cl)
+6190 ec(ee) = int(rnd(1)*3) + 1:eh(ee) = .
+6200 if ex(ee) > cl / 2 then xv(ee) = - xv(ee)
+6210 if ey(ee) > rw / 2 then yv(ee) = - yv(ee)
+6220 next ee:return
+6500 rem take care of food
+6510 for ff = 1 to nf
+6520 x = fx(ff):y = int(fy(ff)):gosub 5510
+6530 if hit = 1 then gosub 4510:cc=0:gosub 1600:fy(ff) = -1
+6540 next ff
+6550 return
+6560 rem set up food
+6660 cc=0:for ff=1 to nf:x = fx(ff):y = fy(ff):gosub 1600:next ff
+6670 nf = int(rnd(1)*3) + 1:color 1,11:for ff = 1 to nf
+6680 fx(ff)=int(rnd(1)*cl) + 1:fy(ff)=rw - int(rnd(1)*(rw - sf - 1))
+6690 x = fx(ff):y = fy(ff):cc=1:gosub 1600
+6700 next ff:return
+7000 rem render scaled game over sprites
+7010 graphic 1,1
+7020 s$="gameover":char 1,0,0,s$
+7030 for i = 0 to 7
+7040 print "Rendering sprite ";chr$(142);mid$(s$,i+1,1);chr$(14)
+7050 for x = 0 to 8
+7060 sshape sp$,x+i*8,0,x+i*8,7
+7070 for j = 0 to 3
+7080 gshape sp$,x*3+j,8
+7090 next j
+7100 next x
+7110 for y = 0 to 7
+7120 sshape sp$,0,8+y,23,8+y
+7130 for j = 0 to 3
+7140 gshape sp$,0,16+y*3+j
+7150 next j
+7160 next y
+7170 sshape gg$(i),0,16,23,36
+7180 nexti
+7190 return
+7200 for ee = 1 to 3
+7210 gosub 2010:nm$(ee)=sp$:sprsav sp$,ee:ew(ee)=sc:sprite ee,1
+7220 sprite 1,,14:sprite 2,,15:sprite 3,,5
+7230 next ee
+7240 return
+7500 print "Rendering bubble sprites"
+7510 xr=cw*1.5:yr=xr*.75:for i = 4 to 6:rem .75 is ntsc pixel aspect ratio
+7520 graphic1,1:circle 1,cw*1.5,ch*1.5,xr,yr:sshape sp$,0,0,23,20
+7530 sprsav sp$,i:sprite i,1,2:xr=xr*.66:yr=yr*.66:bb$(i-4)=sp$:next i
+7540 graphic 1,1
+7550 am = 10
+7560 ty = 18:sf = 5:sc = -10
+7570 print "Drawing surface waves"
+7580 color 1, 4
+7590 xr=25
+7600 for x = 0 to 320+xr*2 step xr*2
+7610 circle 1,x,8*2+4,xr,3,90,270,0,20
+7620 next x
+7630 paint 1,0,0
+7640 print "Drawing sea floor"
+7650 color 1, 8
+7660 y = 200 - 4
+7670 for x = 1 to 320 step cw
+7680 y = y + int(rnd(1)*3-1)
+7690 if y < (200-8) then y = 200 - 8
+7700 if y > 199 then y = 199
+7710 box 1,x,y,x+cw-1,199,,1
+7720 next x
+7730 return
+8000 fast
+8010 for i = 1 to 8
+8020 sprite i,1,2,1,0,0,0
+8030 movspr i,rnd(1)*344+12,rnd(1)*250
+8040 movspr i, 0 # (rnd(1)*3+1)
+8050 sprsav bb$(rnd(1)*3),i
+8060 next i
+8070 graphic 0:slow
+8080 end
+9110 data "turtle", 48, 5
+9120 data 7,255,134,63,255,201,127,255,253,252,255,127,231,185,223,31,135,192
+9130 data 124,31,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9140 data 0,0,0,0,0,0,0,0,0,0,0,0,0,23,0,20,0
+9160 data "dead turtle", 48, 5
+9170 data 7,255,128,49,252,78,110,115,181,247,189,219,251,190,213,0,0,15,0,0,0
+9180 data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9190 data 0,0,0,0,0,0,0,0,23,0,20,0
+9210 data "cephalopod", 20, 5
+9220 data 63,159,192,84,242,160,150,102,144,166,246,80,163,252,80,145,8,144,0
+9230 data 144,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9240 data 0,0,0,0,0,0,0,0,0,0,0,23,0,20,0
+9260 data "fish", 15, 5
+9270 data 31,195,64,101,118,128,237,13,0,117,246,128,31,195,64,0,0,0,0,0,0,0
+9280 data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9290 data 0,0,0,0,0,0,0,23,0,20,0
+9310 data "jellyfish", 6, 5
+9320 data 120,0,0,180,0,0,120,0,0,148,0,0,164,0,0,16,0,0,0,0,0,0,0,0,0,0,0,0,0
+9330 data 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9340 data 23,0,20,0
