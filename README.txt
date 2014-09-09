@@ -46,7 +46,7 @@ BBC Micro:
   any necessary edits by just typing on the keyboard and using copy to
   avoid retyping everything.
 
-Commodore 64 and Plus/4:
+Commodore 64, Plus/4, and 128:
   Like the others, use LIST <line number> to display the line with
   problems, then use the arrow keys to move up and make any
   corrections. By pressing shift-INST you can insert a blank character
