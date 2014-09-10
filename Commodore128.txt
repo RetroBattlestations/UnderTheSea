@@ -51,10 +51,10 @@
 4010 air = air - 1:if air < 0 then air = .
 4020 if air > am then air = am
 4030 rem show remaining air
-4040 sp$ = "air: {CBM-M}"
-4050 for i = 1 to air:sp$ = sp$ + "{CBM-+}":next i
+4040 sp$ = "air: "+chr$(167)
+4050 for i = 1 to air:sp$ = sp$ + chr$(166):next i
 4060 if air < am then for i = air + 1 to am:sp$ = sp$ + " ":next i
-4070 sp$ = sp$ + "{CBM-H}":color 1,4:char 1,40 - 7 - am,1,sp$,1
+4070 sp$ = sp$ + chr$(180):color 1,4:char 1,40 - 7 - am,1,sp$,1
 4080 if air = . then goto 4110
 4090 return
 4100 air = am:goto 4030
