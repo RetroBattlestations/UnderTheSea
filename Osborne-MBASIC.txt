@@ -1,7 +1,7 @@
  100 REM BASIC Week 3: Under the Sea
  110 REM http://reddit.com/r/RetroBattlestations
  120 REM written by FozzTexx
- 130 REM Osbourne One changes by ChartreuseK
+ 130 REM Osborne One changes by ChartreuseK
 
  200 REM Clear screen and setup variables
  210 PRINT CHR$(&H1A)
