@@ -1,7 +1,7 @@
  100 REM BASIC Week 3: Under the Sea
  110 REM http://reddit.com/r/RetroBattlestations
  120 REM written by FozzTexx
- 130 REM Osbourne One version by ChartreuseK
+ 130 REM Osbourne One changes by ChartreuseK
 
  200 REM Clear screen and setup variables
  210 PRINT CHR$(&H1A)
@@ -41,21 +41,21 @@
 1500 REM Draw sprite in SP$ at X,Y
 1510 SE = 1 : SB = 1
 1520 IF X < 1 OR X > COLS OR Y < 1 OR Y > ROWS THEN RETURN
-1530 SE = INSTR(SB, SP$, CHR$(13))
+1530 SE = INSTR(SB, SP$, CHR$(10))
 1540 IF SE = 0 THEN SE = LEN(SP$) + 1
 1550 GOSUB 1010
 1560 SL = SE - SB : IF SL + X - 1 > COLS THEN SL = COLS - X + 1
 1570 PRINT MID$(SP$, SB, SL);
 1580 IF SE >= LEN(SP$) THEN RETURN
-1590 IF ASC(MID$(SP$, SE)) = 13 THEN SE = SE +  1
+1590 IF ASC(MID$(SP$, SE)) = 10 THEN SE = SE +  1
 1600 SB = SE : Y = Y + 1 : GOTO 1520
 
 2000 REM Load a sprite from DATA into SP$
 2010 SP$ = "" : SE$ = "" : SR = 0 : SC = 0
-2020 READ T$,S$ : IF LEN(SP$) > 0 THEN SP$ = SP$ + CHR$(13)
+2020 READ T$,S$ : IF LEN(SP$) > 0 THEN SP$ = SP$ + CHR$(10)
 2030 SP$ = SP$ + S$ : SR = SR + 1 : IF LEN(S$) > SC THEN SC = LEN(S$)
 2040 BL$ = "" : FOR I = 1 TO LEN(S$) : BL$ = BL$ + " " : NEXT I
-2050 IF LEN(SE$) > 0 THEN SE$ = SE$ + CHR$(13)
+2050 IF LEN(SE$) > 0 THEN SE$ = SE$ + CHR$(10)
 2060 SE$ = SE$ + BL$
 2070 IF T$ <> "SE" THEN GOTO 2020
 2080 RETURN
