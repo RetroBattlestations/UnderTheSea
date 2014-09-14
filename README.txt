@@ -65,3 +65,13 @@ IBM Cassette BASIC, Disk BASIC, Advanced BASIC, GW-BASIC:
   you can use Insert & Delete to make corrections. Like Commodore
   BASIC, you don't need to arrow to the end of the line before pushing
   RETURN.
+
+TI-99/4A Extended BASIC
+  Type the line number and then arrow up (FCTN+E) and it will enter
+  edit mode with that line loaded.  You can move within the line with
+  arrow left (FCTN+S) and arrow right (FCTN+D) and move to the
+  previous or next line with arrow up (FCTN+E) or arrow down (FCTN+X).
+  You can delete the character under the cursor with DEL (FCTN+1) or
+  turn on insert mode to insert extra characters with INS (FCTN+2).
+  You do not need to move to the end of the line before pressing
+  ENTER.
