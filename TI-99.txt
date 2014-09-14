@@ -1,0 +1,177 @@
+ 100 REM BASIC Week 3: Under the Sea
+ 110 REM http://reddit.com/r/RetroBattlestations
+ 120 REM written by FozzTexx
+ 140 REM TI-99/4A Extended BASIC version by floodrouting
+
+ 200 REM Clear screen and setup variables
+ 210 CALL CLEAR
+ 220 COLS = 28::ROWS = 24::REM Columns and Rows of screen
+ 230 GOSUB 2010::Turtle$ = SP$::TurtleWidth = SC::TurtleHeight = SR
+ 240 TurtleErase$ = SE$::GOSUB 2010::TurtleDead$ = SP$
+ 250 FOR EE = 1 TO 3::GOSUB 2010::Enemy$(EE) = SP$
+ 260 EnemyErase$(EE) = SE$::EnemyW(EE) = SC::NEXT EE
+ 270 GOSUB 2010::GameOver$ = SP$::GOWidth = SC::GOHeight = SR
+ 280 AirMax = 10::Sea$ = "-_."
+ 290 TurtleY = 18::Surface = 4::GOSUB 4100::Score = -10::GOSUB 4510
+
+ 300 REM Play game
+ 310 X = 1::Y = Surface
+ 320 FOR I = 1 TO COLS::DISPLAY AT(Y,I):SEG$(Sea$, INT(RND * 3) + 1, 1);::NEXT I
+ 330 GOSUB 5140::GOSUB 6660::GOSUB 6140
+ 340 LastY = TurtleY
+ 350 FOR TurtleX = 1 TO COLS
+ 360 IF LastY <> TurtleY THEN GOSUB 3510
+ 370 GOSUB 5010::GOSUB 6510::GOSUB 6010
+ 380 SP$ = Turtle$::X = TurtleX::Y = TurtleY::GOSUB 1510
+ 390 LastY = TurtleY::GOSUB 2510
+ 400 IF KE$ = "A" OR KE$ = "a" THEN D = -1::GOSUB 3010
+ 410 IF KE$ = "Z" OR KE$ = "z" THEN D = 1:: GOSUB 3010
+ 420 IF KE$ = "Q" OR KE$ = "q" THEN END
+ 430 IF TurtleY = Surface + 1 THEN GOTO 450
+ 440 IF TurtleX = (COLS / 4) OR TurtleX = (COLS / 4) * 3 THEN GOSUB 4010
+ 450 IF TurtleY = Surface + 1 AND Air < AirMax THEN GOSUB 4100
+ 460 NEXT TurtleX
+ 470 GOTO 310
+ 
+1500 REM Draw sprite in SP$ at X,Y
+1510 SE = 1::SB = 1
+1520 IF X < 1 OR X > COLS OR Y < 1 OR Y > ROWS THEN RETURN
+1530 SE = POS(SP$, CHR$(13), SB)
+1540 IF SE = 0 THEN SE = LEN(SP$) + 1
+1560 SL = SE - SB::IF SL + X - 1 > COLS THEN SL = COLS - X + 1
+1570 DISPLAY AT(Y,X):SEG$(SP$, SB, SL);
+1580 IF SE >= LEN(SP$) THEN RETURN
+1590 IF ASC(SEG$(SP$, SE, 1)) = 13 THEN SE = SE +  1
+1600 SB = SE::Y = Y + 1::GOTO 1520
+
+2000 REM Load a sprite from DATA into SP$
+2010 SP$ = ""::SE$ = ""::SR = 0::SC = 0
+2020 READ T$,S$::IF LEN(SP$) > 0 THEN SP$ = SP$ & CHR$(13)
+2030 SP$ = SP$ & S$::SR = SR + 1::IF LEN(S$) > SC THEN SC = LEN(S$)
+2040 BL$ = ""::FOR I = 1 TO LEN(S$)::BL$ = BL$ & " "::NEXT I
+2050 IF LEN(SE$) > 0 THEN SE$ = SE$ & CHR$(13)
+2060 SE$ = SE$ & BL$
+2070 IF T$ <> "SE" THEN GOTO 2020
+2080 RETURN
+
+2500 REM Read the keyboard
+2510 KE$=""::CALL KEY(0,K,S)::IF K<>-1 THEN KE$=CHR$(K)
+2520 RETURN
+
+3000 REM Player wants to move turtle up or down
+3010 TurtleY = TurtleY + D
+3020 IF TurtleY <= Surface THEN TurtleY = Surface + 1
+3030 IF TurtleY > ROWS - TurtleHeight + 1 THEN TurtleY = ROWS - TurtleHeight + 1
+3040 RETURN
+
+3500 REM Turtle moved up or down, erase from previous line
+3510 Y = LastY::IF LastY > TurtleY THEN Y = Y + TurtleHeight - 1
+3520 X = TurtleX::SP$ = TurtleErase$::GOSUB 1510
+3530 RETURN
+
+4000 REM Show remaining air
+4010 Air = Air - 1::IF Air < 0 THEN Air = 0
+4020 IF Air > AirMax THEN Air = AirMax
+4030 X = COLS - 7 - AirMax::Y = 2
+4040 DISPLAY AT(Y,X):"Air: |";
+4050 FOR I = 1 TO Air::DISPLAY AT(Y,X+5+I):"#";::NEXT I
+4060 FOR I = Air + 1 TO AirMax::DISPLAY AT(Y,X+5+I):" ";::NEXT I
+4070 DISPLAY AT(Y,X+6+AirMax):"|";
+4080 IF Air = 0 THEN GOTO 4110
+4090 RETURN
+4100 Air = AirMax::GOTO 4030
+4110 FOR I = TurtleY to Surface + 1 STEP -1
+4120 X = TurtleX::Y = I::SP$ = TurtleDead$::GOSUB 1510
+4130 Y = Y + 1::SP$ = TurtleErase$::GOSUB 1510
+4140 NEXT I
+4150 X = (COLS - GOWidth) / 2::Y = (ROWS - GOHeight) / 2
+4160 SP$ = GameOver$::GOSUB 1510
+4170 X = 1::Y = ROWS - 2
+4180 END
+
+4500 REM Display score
+4510 Score = Score + 10::OX = X::OY = Y
+4520 X = 2::Y = 2::DISPLAY AT(Y,X):Score;
+4540 X = OX::Y = OY::RETURN
+
+5000 REM Take care of bubbles
+5010 FOR BB = 1 to NumBubbles
+5020 IF INT(BubbleY(BB)) <= Surface THEN GOTO 5120
+5030 NewY = BubbleY(BB) - (ROWS / COLS)
+5040 X = BubbleX(BB)::Y = INT(BubbleY(BB))
+5050 GOSUB 5510::IF Hit = 0 THEN GOTO 5080
+5060 Air = Air + 2::IF Bubble$(BB) = "O" THEN AIR = AIR + 1
+5070 GOSUB 4010::NewY = ROWS + COLS
+5080 IF INT(NewY) = Y THEN GOTO 5110
+5090 SP$ = " "::GOSUB 1510::SP$ = Bubble$(BB)::Y = INT(NewY)
+5100 IF Y > Surface THEN GOSUB 1510
+5110 BubbleY(BB) = NewY
+5120 NEXT BB
+5130 RETURN
+5140 NumBubbles = INT(RND * 3) + 1::FOR BB = 1 to NumBubbles
+5150 BubbleX(BB) = INT(RND * COLS) + 1::BubbleY(BB) = ROWS - INT(RND * 3)
+5160 Bubble$(BB) = CHR$(79 + INT(RND * 2) * 32)
+5170 NEXT BB::RETURN
+
+5500 REM Hit detection
+5510 Hit = 0
+5520 IF X < TurtleX + TurtleWidth - 2 THEN RETURN
+5530 IF X > TurtleX + TurtleWidth + 1 THEN RETURN
+5540 IF Y < TurtleY - 1 THEN RETURN
+5550 IF Y > TurtleY + 1 THEN RETURN
+5560 Hit = 1::RETURN
+
+6000 REM Take care of enemies
+6010 FOR EE = 1 to NumEnemies
+6020 IF INT(EnemyY(EE)) <= Surface THEN GOTO 6120
+6030 NewX = EnemyX(EE) + EnemyXV(EE)::NewY = EnemyY(EE) + EnemyYV(EE)
+6040 X = INT(EnemyX(EE))::Y = INT(EnemyY(EE))
+6050 IF EnemyHit(EE) = 1 THEN GOTO 6070
+6060 GOSUB 5510::IF Hit = 1 THEN GOSUB 4010::EnemyHit(EE) = 1
+6070 IF INT(NewX) = X AND INT(NewY) = Y THEN GOTO 6110
+6080 SP$ = EnemyErase$(EnemyC(EE))::GOSUB 1510
+6090 SP$ = Enemy$(EnemyC(EE))::X = INT(NewX)::Y = INT(NewY)
+6100 IF Y > Surface THEN GOSUB 1510
+6110 EnemyX(EE) = NewX::EnemyY(EE) = NewY
+6120 NEXT EE
+6130 RETURN
+6140 FOR EE = 1 TO NumEnemies::SP$ = EnemyErase$(EnemyC(EE))
+6150 X = INT(EnemyX(EE))::Y = INT(EnemyY(EE))::GOSUB 1510::NEXT EE
+6160 NumEnemies = INT(RND * 3) + 1::FOR EE = 1 to NumEnemies
+6170 EnemyX(EE)=INT(RND*COLS)+1::EnemyY(EE)=ROWS-INT(RND*(ROWS - Surface))
+6180 EnemyXV(EE) = RND::EnemyYV(EE) = RND * ((ROWS - Surface) / COLS)
+6190 EnemyC(EE) = INT(RND * 3) + 1::EnemyHit(EE) = 0
+6200 IF EnemyX(EE) > COLS / 2 THEN EnemyXV(EE) = - EnemyXV(EE)
+6210 IF EnemyY(EE) > ROWS / 2 THEN EnemyYV(EE) = - EnemyYV(EE)
+6220 NEXT EE::RETURN
+
+6500 REM Take care of food
+6510 FOR FF = 1 to NumFood
+6520 X = FoodX(FF)::Y = INT(FoodY(FF))::GOSUB 5510
+6530 IF Hit = 1 THEN GOSUB 4510::SP$ = " "::GOSUB 1510::FoodY(FF) = ROWS + COLS
+6640 NEXT FF
+6650 RETURN
+6660 SP$=" "::FOR FF=1 TO NumFood::X = FoodX(FF)::Y = FoodY(FF)::GOSUB 1510::NEXT FF
+6670 NumFood = INT(RND * 3) + 1::FOR FF = 1 to NumFood
+6680 FoodX(FF)=INT(RND * COLS) + 1::FoodY(FF)=ROWS - INT(RND * (ROWS - Surface))
+6690 Food$(FF) = CHR$(120 + INT(RND * 2))
+6700 X = FoodX(FF)::Y = FoodY(FF)::SP$ = Food$(FF)::GOSUB 1510
+6710 NEXT FF::RETURN
+
+9000 DATA SP," _-%#%#}o"
+9010 DATA SE,"       )"
+9020 DATA SE,"  -OOOO}x"
+9030 DATA SE,"^;;^"
+9040 DATA SE,"<><"
+9050 DATA SE,"$"
+9060 DATA SP," _   _          __"
+9070 DATA SP,"/ \ / \ |\  /| |  "
+9080 DATA SP,"| _ |_| | \/ | |--"
+9090 DATA SP,"\_/ | | |    | |__"
+9100 DATA SP,""
+9110 DATA SP,"        *"
+9120 DATA SP,""
+9130 DATA SP,"   _       __  _"
+9140 DATA SP,"  / \ | | |   | \"
+9150 DATA SP,"  | | \ / |-- |_/"
+9160 DATA SE,"  \_/  V  |__ | \"
