@@ -1,0 +1,427 @@
+ 100 REM** BASIC Week 3: Under the Sea
+ 110 REM** http://reddit.com/r/RetroBattlestations
+ 120 REM** written by FozzTexx
+ 130 REM** Adapted for the HP9830 by bhilpert / 2014 Sep
+ 131 REM** Output is programmed for a VT100-compatible display.
+
+ 140 REM****************************************
+ 141 REM*** Declare
+ 150 DIM B$[80], E$[80], F$[80], G$[200], K$[80], S$[3]
+ 155 DIM T$[80], U$[80], V$[80], W$[80], X$[200], Y$[80], Z$[200]
+ 160 DIM B[3], C[3]
+ 170 DIM E[3], F[3], G[3], H[3], I[3], J[3], K[3], L[3]
+ 180 DIM M[3], N[3], SI[1,1]
+ 190 FORMAT B
+
+ 196 REM****************************************
+ 197 REM*** Initialise
+ 198 DISP "SEED";
+ 199 INPUT J
+ 200 I = RND( -J )
+ 201 REM** Clear screen and set size
+ 209 FORMAT B,B,"2J"
+ 210 WRITE(15,209) 27,91
+ 220 C9 = 80
+ 221 R9 = 24
+ 229 REM** Load turtle sprite
+ 230 GOSUB 2010
+ 231 T$ = Z$
+ 232 T2 = Z0
+ 233 T3 = Z1
+ 240 U$ = X$
+ 241 REM** and dead turtle sprite
+ 242 GOSUB 2010
+ 243 V$ = Z$
+ 249 REM** Load enemy sprites
+ 250 FOR E = 1 TO 3
+ 251 GOSUB 2010
+ 253 E$[E*10-9,E*10+1] = Z$
+ 260 K(E) = LEN(Z$)-1
+ 262 NEXT E
+ 269 REM** Load game-over sprite
+ 270 GOSUB 2010
+ 271 G$ = Z$
+ 272 G2 = Z0
+ 273 G3 = Z1
+ 274 REM** init surface
+ 276 S[1,1] = 94*256+126
+ 277 TRANSFER S[1,1] to S$
+ 278 S$[3] = "-"
+ 279 S9 = 4
+ 280 REM** init air
+ 282 A9 = 10
+ 284 GOSUB 4100
+ 286 REM** init score
+ 288 U8 = -10
+ 290 GOSUB 4510
+ 292 REM** init state
+ 294 E9 = 0
+ 296 F9 = 0
+ 298 T1 = 18
+
+ 299 REM****************************************
+ 300 REM*** loop: main play loop, iterate per screen
+ 301 REM** draw surface
+ 310 X = 1
+ 311 Y = S9
+ 312 GOSUB 1010
+ 320 FOR I = 1 TO C9
+ 321 N = INT(RND8*LEN(S$)) + 1
+ 322 WRITE(15,190) S$[N,N];
+ 323 NEXT I
+ 326 REM** init bubbles, food, enemies 
+ 330 GOSUB 5140
+ 331 GOSUB 6660
+ 332 GOSUB 6140
+ 340 L1 = T1
+ 341 REM**********
+ 342 REM** loop: move turtle right across screen 
+ 350 FOR T0 = 1 TO C9
+ 351 REM** erase turtle if it moved up or down
+ 360 IF L1 = T1 THEN 370
+ 361 Z$ = U$
+ 362 Y = L1
+ 363 REM IF L1 <= T1 THEN 365
+ 364 REM Y = Y + T3 - 1
+ 365 X = T0
+ 367 GOSUB 1510
+ 369 REM** draw bubbles, food, enemies
+ 370 GOSUB 5010
+ 371 GOSUB 6510
+ 372 GOSUB 6010
+ 373 REM** draw turtle
+ 380 Z$ = T$
+ 381 X = T0
+ 382 Y = T1
+ 384 GOSUB 1510
+ 390 L1 = T1
+ 395 REM** check user input
+ 396 GOSUB 2510
+ 400 IF K$ <> "A" THEN 410
+ 401 D = -1
+ 402 GOSUB 3010
+ 410 IF K$ <> "Z" THEN 420
+ 411 D = 1
+ 412 GOSUB 3010
+ 420 IF K$ <> "Q" THEN 430
+ 421 END
+ 422 REM** check air
+ 430 IF T1 = S9+1 THEN 450
+ 440 IF T0 <> (C9/4) AND T0 <> (C9/4)*3 THEN 450
+ 441 GOSUB 4010
+ 450 IF T1 <> S9+1 OR A8 >= A9 THEN 460
+ 451 GOSUB 4100
+ 460 NEXT T0
+ 461 REM** loop end: move right
+ 462 REM**********
+ 470 GOTO 310
+ 471 REM** loop end: screen
+ 472 REM****************************************
+
+
+1000 REM****************************************
+1001 REM**** Position cursor at X,Y
+1002 FORMAT B,B,B,B,";",B,B,"f"
+1010 M0 = INT(X / 10)
+1040 M1 = INT(Y / 10)
+1050 WRITE(15,1002) 27, 91, M1+48, Y-M1*10+48, M0+48, X-M0*10+48;
+1060 RETURN
+
+
+1500 REM****************************************
+1501 REM**** Draw sprite in Z$ at X,Y
+1510 Z0 = 1
+1520 IF X<1 OR X>C9 OR Y<1 OR Y>R9 THEN 1670
+1521 GOSUB 1010
+1530 Z1 = POS(Z$[Z0],"!")
+1540 IF Z1 = 0 THEN 1630
+1550 Z2 = Z1-2
+1560 IF Z2 < C9-X THEN 1570
+1561 Z2 = C9-X
+1570 WRITE(15,190) Z$[ Z0, Z0+Z2 ];
+1600 Z0 = Z0 + Z1
+1610 Y = Y + 1
+1620 GOTO 1520
+1630 Z2 = LEN(Z$)-Z0
+1640 IF Z2 < C9-X THEN 1660
+1650 Z2 = C9-X
+1660 PRINT Z$[ Z0, Z0+Z2 ]
+1670 RETURN
+
+
+2000 REM****************************************
+2001 REM**** Load a sprite from DATA into Z$
+2002 REM**** returns Z$=sprite, X$=erase, Z0=width, Z1=height
+2010 Z$ = ""
+2011 X$ = ""
+2012 Z1 = 0
+2020 READ N,Y$
+2021 REM** prepare the sprite string
+2022 IF LEN(Z$) = 0 THEN 2030
+2023 Z$[LEN(Z$)+1] = "!"
+2030 Z$[LEN(Z$)+1] = Y$
+2033 Z0 = LEN(Y$)
+2034 Z1 = Z1 + 1
+2035 REM** prepare the erase string
+2040 W$ = ""
+2041 FOR I = 1 TO LEN(Y$)
+2042 W$[LEN(W$)+1] = " "
+2043 NEXT I
+2050 IF LEN(X$) = 0 THEN 2060
+2051 X$[LEN(X$)+1] = "!"
+2060 X$[LEN(X$)+1] = W$
+2061 REM** check for last line of sprite
+2070 IF N <> 0 THEN 2020
+2080 RETURN
+
+
+2500 REM****************************************
+2501 REM**** Read the keyboard
+2502 REM** NOTE: uses new/special input poll function
+2503 REM** Could use STAT in Extended I/O ROM
+2510 K = MINPOLL(8)
+2520 IF K <> 65 THEN 2530
+2521 K$ = "A"
+2522 RETURN
+2530 IF K <> 90 THEN 2540
+2531 K$ = "Z"
+2532 RETURN
+2540 IF K <> 81 THEN 2580
+2541 K$ = "Q"
+2542 RETURN
+2580 K$ = ""
+2590 RETURN
+
+
+3000 REM****************************************
+3001 REM**** Player wants to move turtle up or down
+3010 T1 = T1 + D
+3020 IF T1 > S9 THEN 3030
+3021 T1 = S9 + 1
+3030 IF T1 <= R9-T3+1 THEN 3040
+3031 T1 = R9-T3+1
+3040 RETURN
+
+
+4000 REM****************************************
+4001 REM**** Show remaining air
+4010 A8 = A8 - 1
+4011 IF A8 >= 0 THEN 4020
+4012 A8 = 0
+4020 IF A8 <= A9 THEN 4030
+4021 A8 = A9
+4030 X = C9 - 7 - A9
+4031 Y = 2
+4032 GOSUB 1010
+4040 PRINT "Air: |";
+4050 FOR I = 1 TO A8
+4051 PRINT "#";
+4052 NEXT I
+4060 IF A8 >= A9 THEN 4070
+4061 FOR I = A8 + 1 TO A9
+4062 PRINT " ";
+4063 NEXT I
+4070 PRINT "|";
+4080 IF A8 = 0 THEN 4110
+4090 RETURN
+4094 REM*********************
+4095 REM**** Init air
+4100 A8 = A9
+4101 GOTO 4030
+
+4108 REM*********************
+4109 REM** Game Over
+4110 FOR I = T1 to S9 + 1 STEP -1
+4120 X = T0
+4121 Y = I
+4122 Z$ = V$
+4123 GOSUB 1510
+4130 Y = Y + 1
+4131 Z$ = U$
+4132 GOSUB 1510
+4140 NEXT I
+4150 X = INT( (C9-G2) / 2 )
+4151 Y = INT( (R9-G3) / 2 )
+4160 Z$ = G$
+4161 GOSUB 1510
+4170 X = 1
+4171 Y = R9 - 2
+4172 GOSUB 1010
+4180 END
+
+
+4500 REM****************************************
+4501 REM**** Display score
+4510 U8 = U8 + 10
+4511 H0 = X
+4512 H1 = Y
+4520 X = 2
+4521 Y = 2
+4522 GOSUB 1010
+4523 PRINT "Score: ";U8;
+4540 X = H0
+4541 Y = H1
+4542 RETURN
+
+
+5000 REM****************************************
+5001 REM**** Take care of bubbles
+5010 FOR B = 1 to B9
+5020 IF INT(C(B)) <= S9 THEN 5120
+5030 N1 = C(B) - (R9 / C9)
+5040 X = B(B)
+5041 Y = INT(C(B))
+5050 GOSUB 5510
+5051 IF H = 0 THEN 5080
+5060 A8 = A8 + 2
+5061 IF B$[B,B] <> "O" THEN 5070
+5062 A8 = A8 + 1
+5070 GOSUB 4010
+5071 N1 = R9 + C9
+5080 IF INT(N1) = Y THEN 5110
+5090 Z$ = " "
+5091 GOSUB 1510
+5092 Z$ = B$[B,B]
+5093 Y = INT(N1)
+5100 IF Y <= S9 THEN 5110
+5101 GOSUB 1510
+5110 C(B) = N1
+5120 NEXT B
+5130 RETURN
+
+5134 REM****************************************
+5135 REM**** Bubbles Init
+5140 B9 = INT(RND8 * 3) + 1
+5141 FOR B = 1 to B9
+5150 B(B) = INT(RND8 * C9) + 1
+5151 C(B) = R9 - INT(RND8 * 3)
+5152 Z$ = "Oo"
+5153 N = INT(RND8*2) + 1
+5160 B$[B] = Z$[N,N]
+5170 NEXT B
+5171 RETURN
+
+
+5500 REM****************************************
+5501 REM**** Hit detection
+5510 H = 0
+5520 IF X < T0 + T2 - 2 THEN 5561
+5530 IF X > T0 + T2 + 1 THEN 5561
+5540 IF Y < T1 - 1 THEN 5561
+5550 IF Y > T1 + 1 THEN 5561
+5560 H = 1
+5561 RETURN
+
+
+6000 REM****************************************
+6001 REM**** Take care of enemies
+6010 FOR E = 1 to E9
+6040 X = INT(E(E))
+6041 Y = INT(F(E))
+6020 IF Y <= S9 THEN 6120
+6049 REM** check for hit
+6050 IF I(E) = 1 THEN 6070
+6060 GOSUB 5510
+6061 IF H <> 1 THEN 6070
+6062 GOSUB 4010
+6063 I(E) = 1
+6069 REM** update location
+6070 E(E) = E(E) + G(E)
+6071 F(E) = F(E) + H(E)
+6072 REM** if movement erase and redraw
+6073 IF INT(E(E)) = X AND INT(F(E)) = Y THEN 6120
+6080 Z$ = U$[1,1+L(E)]
+6081 GOSUB 1510
+6090 Z$ = E$[J(E),J(E)+L(E)]
+6091 X = INT(E(E))
+6092 Y = INT(F(E))
+6100 IF Y <= S9 THEN 6120
+6101 GOSUB 1510
+6120 NEXT E
+6130 RETURN
+
+6134 REM****************************************
+6135 REM**** Enemies Init
+6139 REM** clear previous enemies
+6140 FOR E = 1 TO E9
+6141 Z$ = U$[1,1+L(E)]
+6150 X = INT(E(E))
+6151 Y = INT(F(E))
+6152 GOSUB 1510
+6153 NEXT E
+6159 REM** create new enemies
+6160 E9 = INT(RND8 * 3) + 1
+6161 FOR E = 1 to E9
+6162 REM** initial position
+6170 E(E)=INT(RND8*C9)+1
+6171 F(E)=R9-INT(RND8*(R9 - S9))
+6172 REM** delta X,Y
+6180 G(E) = RND8
+6181 H(E) = RND8 * ((R9 - S9) / C9)
+6182 REM** sprite to use
+6189 N = INT( RND8 * 3 ) + 1
+6190 J(E) = N*10 - 9
+6191 L(E) = K(N)
+6192 REM** hit or not
+6193 I(E) = 0
+6194 REM** movement direction
+6200 IF E(E) <= C9 / 2 THEN 6210
+6201 G(E) = - G(E)
+6210 IF F(E) <= R9 / 2 THEN 6220
+6211 H(E) = - H(E)
+6220 NEXT E
+6221 RETURN
+
+
+6500 REM****************************************
+6500 REM**** Take care of food
+6510 FOR F = 1 to F9
+6520 X = M(F)
+6521 Y = INT(N(F))
+6522 GOSUB 5510
+6530 IF H <> 1 THEN 6640
+6531 GOSUB 4510
+6532 Z$ = " "
+6533 GOSUB 1510
+6534 N(F) = R9 + C9
+6640 NEXT F
+6650 RETURN
+
+6655 REM****************************************
+6656 REM**** Food Init
+6659 REM** clear previous food
+6660 Z$=" "
+6661 FOR F=1 TO F9
+6662 X = M(F)
+6663 Y = N(F)
+6664 GOSUB 1510
+6665 NEXT F
+6669 REM** create new food
+6670 F9 = INT(RND8 * 3) + 1
+6671 FOR F = 1 to F9
+6680 M(F) = INT(RND8 * C9) + 1
+6681 N(F) = R9 - INT(RND8 * (R9 - S9))
+6690 Z$ = "xy"
+6691 N = INT(RND8*2) + 1
+6692 F$[F] = Z$[N,N]
+6700 X = M(F)
+6701 Y = N(F)
+6702 Z$ = F$[F,F]
+6703 GOSUB 1510
+6710 NEXT F
+6711 RETURN
+
+
+8900 REM****************************************
+8910 REM**** Data
+9000 DATA 1," /-%#%#}o"
+9010 DATA 0,"       )"
+9020 DATA 0,"  -OOOO}x"
+9030 DATA 0,"^;;^"
+9040 DATA 0,"<><"
+9050 DATA 0,"$"
+9060 DATA 1,"***********************"
+9070 DATA 1,"**                   **"
+9080 DATA 1,"*  G A M E   O V E R  *"
+9085 DATA 1,"**                   **"
+9090 DATA 0,"***********************"
