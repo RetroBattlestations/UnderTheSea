@@ -1,0 +1,232 @@
+1 ! BASIC Week 3: Under The Sea
+2 ! http//reddit.com/r/RetroBattlestations
+3 ! written by FozzTexx
+4 ! HP 85B version by Craig Ruff
+5 ! Needs the Advanced Programming ROM
+
+6 ! Adjustments due to the smaller screen size:
+7 ! Shortened turtle, decreased air capacity
+
+8 ! Made turtle into 2 sprites to try to help increase update rate.
+9 ! HP-85 BASIC has no long variable names, which is crappy.
+10 ! Strings arrays use a wierd SARRAY, SLET, SGET syntax.
+11 ! The CPU freq is approx 600 KHz, thus runs slowly. I tried using
+12 ! FNx style functions to help program structure but found
+13 ! they ran 20% slower than GOSUBs and global variables for
+14 ! parameter and result passing.
+
+100 ! setup variables
+110 OPTION BASE 1
+120 INTEGER R,C ! screen rows,cols
+125 R=16 @ C=32
+130 INTEGER S0,S9 ! next sprite, max sprite
+135 S0=1 @ S9=13
+150 DIM S0$[256],S1$[256] ! sprite image and erase storage
+155 SARRAY S0$,S1$
+170 SHORT X0(12),Y0(12) ! sprite position
+180 SHORT X1(12),Y1(12) ! sprite velocity
+190 INTEGER X2(12) ! sprite width
+200 INTEGER R0,R1 ! surface and status row
+210 R0=3 @ R1=1
+220 INTEGER C1,C2 ! air and score display col
+230 INTEGER A,A0 ! air, air max
+240 A0=6 @ A=A0+1 @ C1=C-7-A0
+250 INTEGER S,S8 ! score, score increment
+260 S8=10 @ S=-S8 @ C2=1
+270 INTEGER F0,F1,F2 ! first, max and current # food sprites
+280 INTEGER B0,B1,B2 ! first, max and current # bubble sprites
+290 INTEGER E0,E1,E2 ! first, max and current # enemy sprites
+300 F1,B1,E1=3
+310 INTEGER E9(3) ! enemy triggered status
+320 DIM E$[32] ! enemy sprite images
+330 SARRAY E$
+340 SLET E$(1) = "^;;^"
+350 SLET E$(2) = "<><"
+360 SLET E$(3) = "$"
+370 S$="-_." ! surface chars
+380 K$="" ! key buffer
+390 INTEGER B,E,F,I,Q,P,Z
+400 GOTO 2800
+
+500 ! define a sprite
+510 I=S0
+520 IF S0>=S9 THEN DISP "Sprite array overflow!" @ STOP
+530 X0(I),Y0(I),X1(I),Y1(I)=0
+540 X2(I)=LEN(A$)
+550 SLET S0$(I) = A$ @ SLET S1$(I) = RPT$(" ",LEN(A$))
+590 S0=S0+1
+600 RETURN
+
+649 ! draw sprite i
+650 B$=GET$(S0$(I)) @ GOTO 900
+
+699 ! erase sprite I
+700 B$=GET$(S1$(I)) @ GOTO 900
+
+749 ! hide sprite
+750 GOSUB 700 @ Y0(I)=0 @ RETURN
+
+799 ! set sprite position
+800 X0(I)=X @ Y0(I)=Y @ RETURN
+
+849 ! set sprite velocity
+850 X1(I)=X @ Y1(I)=Y @ RETURN
+
+899 ! draw/erase sprite common
+900 X=INT(X0(I)) @ Y=INT(Y0(I))
+930 IF X<1 OR X>C OR Y<1 OR Y>R THEN RETURN
+940 Q=X2(I)
+950 IF X+Q-1>C THEN Q=1+C-X
+960 ALPHA Y,X @ AWRIT B$[1,Q]
+980 RETURN
+
+999 ! move sprite
+1000 FOR I=1 TO S0-1
+1030 IF Y0(I)=0 THEN 1080
+1035 X=INT(X0(I)) @ Y=INT(Y0(I))
+1040 X4=X0(I)+X1(I) @ X3=INT(X4)
+1050 Y4=Y0(I)+Y1(I) @ Y3=INT(Y4)
+1060 IF X3<1 OR X3>C OR Y3<=R0 OR Y3>R THEN GOSUB 750 @ GOTO 1080
+1070 IF X<>X3 OR Y<>Y3 THEN GOSUB 700 ! moved, erase
+1075 X0(I)=X4 @ Y0(I)=Y4
+1080 NEXT I
+1090 RETURN
+
+1199 ! update screen
+1200 FOR I=1 TO S0-1
+1230 IF Y0(I)>0 THEN GOSUB 650
+1240 NEXT I
+1250 RETURN
+
+1299 ! update air level
+1300 A=A-1 @ A=MAX(0,MIN(10,A))
+1330 ALPHA R1,C1 @ AWRIT "Air: |"&RPT$("#",A)&RPT$(" ",A0-A)&"|"
+1340 RETURN
+
+1399 ! update score
+1400 S=S+S8 @ ALPHA R1,C2 @ AWRIT "Score: "&VAL$(S)
+1430 RETURN
+
+1599 ! generate new bubbles
+1600 B2=INT(RND*B1)+1
+1630 FOR I=B0 TO B0+B2-1
+1640 SLET S0$(I) = CHR$(79+INT(RND*2)*32) ! "o" OR "O"
+1650 X=INT(RND*C)+1 @ Y=R-INT(RND*3) @ GOSUB 800
+1660 X=0 @ Y=-(R/C) @ GOSUB 850
+1670 NEXT I
+1680 FOR I=I TO B0+B1-1 @ GOSUB 750 @ NEXT I
+1690 RETURN
+
+1699 ! bubble behavior
+1700 FOR I=B0 TO B0+B2-1
+1730 IF Y0(I)<=R0+1 THEN GOSUB 750 @ GOTO 1750
+1740 GOSUB 2300 @ IF H THEN A=MAX(A0,A+2+(GET$(S0$(I))="O")) @ GOSUB 1300 @ GOSUB 750
+1750 NEXT I
+1760 RETURN
+
+1799 ! generate new food items
+1800 F2=INT(RND*F1)+1
+1830 FOR I=F0 TO F0+F2-1
+1840 SLET S0$(I) = CHR$(120+INT(RND*2)) ! "x" OR "y"
+1850 X=INT(RND*C)+1 @ Y=R-INT(RND*(R-R0)) @ GOSUB 800
+1860 X=0 @ Y=0 @ GOSUB 850
+1870 NEXT I
+1880 FOR I=I TO F0+F1-1 @ GOSUB 750 @ NEXT I
+1890 RETURN
+
+1899 ! food behavior
+1900 FOR I=F0 TO F0+F2-1
+1930 GOSUB 2300 @ IF H THEN GOSUB 1400 @ GOSUB 750
+1940 NEXT I
+1950 RETURN
+
+1999 ! place enemies
+2000 E2=INT(RND*E1)+1
+2030 FOR I=E0 TO E0+E2-1
+2040 X=INT(RND*C)+1 @ Y=R-INT(RND*(R-R0)) @ GOSUB 800
+2050 T=RND @ IF X>C\2 THEN X=-T ELSE X=T
+2060 T=RND*(R-R0)/C @ IF Y>R\2 THEN Y=-T ELSE Y=T
+2070 GOSUB 850 @ E9(I-E0+1)=0
+2075 B$=GET$(E$(INT(RND*E1)+1))
+2080 SLET S0$(I) = B$
+2085 X2(I)=LEN(B$)
+2086 SLET S1$(I) = RPT$(" ",X2(I))
+2090 NEXT I
+2100 FOR I=I TO E0+E1-1 @ GOSUB 750 @ E9(I-E0+1)=1 @ NEXT I
+2110 RETURN
+
+2199 ! enemy behavior
+2200 FOR I=E0 TO E0+E2-1
+2230 Y=INT(Y0(I))
+2240 IF Y<R0+1 OR Y>R THEN GOSUB 750 @ GOTO 2260
+2245 GOSUB 2300
+2250 IF NOT E9(I-E0+1) AND H THEN GOSUB 1300 @ E9(I-E0+1)=1
+2260 NEXT I
+2270 RETURN
+
+2299 ! turtle hit detection
+2300 X=INT(X0(I)) @ Y=INT(Y0(I))
+2330 X0=INT(X0(T0))+X2(T0) @ Y0=INT(Y0(T0))
+2340 H=X>=X0-2 AND X<=X0+1 AND Y>=Y0-1 AND Y<=Y0+1
+2350 RETURN
+
+2400 ! turtle depth adjust
+2410 Y=INT(Y0(T0))+I @ IF Y<=R0 OR Y>=R-1 THEN RETURN
+2420 Y1(T0),Y1(T0+1)=I
+2430 RETURN
+
+2800 ! initialize sprites, low to high display priority
+2810 A$=" " @ F0=S0 @ FOR N=1 TO F1 @ GOSUB 500 @ NEXT N
+2820 B0=S0 @ FOR N=1 TO B1 @ GOSUB 500 @ NEXT N
+2830 E0=S0 @ FOR N=1 TO E1 @ GOSUB 500 @ NEXT N
+2840 T0=S0 @ A$="_-%#)o" @ GOSUB 500 ! live turtle
+2845 A$=")" @ GOSUB 500 ! live turtle flippers
+2850 T1=S0 @ A$="-OO)x" @ GOSUB 500 ! dead turtle
+2860 OFF CURSOR
+2900 X=1 @ Y=R-R\3 @ I=T0 @ GOSUB 800 ! turtle start pos
+2905 X=5 @ Y=Y+1 @ GOSUB 800
+2910 X=1 @ Y=0 @ I=T0 @ GOSUB 850 ! turtle motion
+2915 I=T0+1 @ GOSUB 850
+2920 ON KYBD K,"AZQ" GOSUB 2940
+2930 GOTO 3000
+2940 K$=CHR$(K) @ RETURN
+
+3000 ! game loop
+3010 ALPHA 1,1 @ CLEAR
+3015 ALPHA R0,1 ! draw surface
+3020 FOR I=1 TO C @ P=INT(RND*3+1) @ DISP S$[P,P];@ NEXT I
+3025 OFF CURSOR
+3030 GOSUB 1600 ! place bubbles
+3040 GOSUB 1800 ! place food
+3050 GOSUB 2000 ! place enemies
+3060 X=1 @ Y=Y0(T0) @ I=T0 @ GOSUB 800 ! place turtle
+3062 X=5 @ Y=Y0(T0)+1 @ I=T0+1 @ GOSUB 800
+3065 GOSUB 1400 @ GOSUB 1300
+3070 GOSUB 1200 ! update screen
+3080 GOSUB 1700 ! bubble behavior
+3090 GOSUB 1900 ! food behavior
+3100 GOSUB 2200 ! enemy behavior
+3110 IF K$="A" THEN I=-1 @ GOSUB 2400 ! turtle ascend
+3120 IF K$="Z" THEN I=1 @ GOSUB 2400 ! turtle descend
+3130 IF K$="Q" THEN 3350
+3140 K$=""
+3150 IF Y0(T0)>R0+1 AND (X0(T0)=C\4 OR X0(T0)=C*3\4) THEN GOSUB 1300
+3160 IF Y0(T0)=R0+1 THEN A=A0+1 @ GOSUB 1300
+3170 IF A=0 THEN 3300
+3180 GOSUB 1000 ! MOVE SPRITES
+3185 Y1(T0),Y1(T0+1)=0
+3190 IF X0(T0)<C THEN 3070
+3200 GOTO 3000
+
+3299 ! death sequence
+3300 I=T0 @ GOSUB 700 ! erase live turtle
+3305 I=T0+1 @ GOSUB 700
+3310 X=X0(T0) @ Y=Y0(T0) @ I=T1 @ GOSUB 800 ! position dead turtle
+3320 FOR Z=Y0(T1) TO R0+1 STEP -1
+3322 GOSUB 700
+3325 X=X0(T1) @ Y=Z @ GOSUB 800
+3330 GOSUB 650
+3340 NEXT Z
+3350 ALPHA R,1 @ DISP "GAME OVER"
+3355 ON CURSOR
+3360 END
